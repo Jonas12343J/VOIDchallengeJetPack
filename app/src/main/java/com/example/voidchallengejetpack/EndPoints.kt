@@ -126,8 +126,6 @@ fun getShowGenresAsync(onSuccess: (String) -> Unit, onFailure: (IOException) -> 
 
 fun getShowDetailsAsync(scope: CoroutineScope?, showID: Int, onSuccess: (String) -> Unit, onFailure: (IOException) -> Unit) {
 
-    fetchingResults = true
-
     val client = OkHttpClient()
     val request = Request.Builder()
         //.url("https://api.themoviedb.org/3/tv/$showID?api_key=$API_KEY&language=en-US")
@@ -152,10 +150,8 @@ fun getShowDetailsAsync(scope: CoroutineScope?, showID: Int, onSuccess: (String)
                     // Handle unsuccessful response
                     onFailure(IOException("Unexpected response: ${response.code}"))
                 }
-                fetchingResults = false
             }
         } catch (e: IOException) {
-            fetchingResults = false
             // Handle network request failure
             withContext(Dispatchers.Main) {
                 onFailure(e)
@@ -166,8 +162,6 @@ fun getShowDetailsAsync(scope: CoroutineScope?, showID: Int, onSuccess: (String)
 
 
 fun getKeyWordsAsync(scope: CoroutineScope, showID: Int, onSuccess: (String) -> Unit, onFailure: (IOException) -> Unit) {
-
-    fetchingResults = true
 
     val client = OkHttpClient()
     val request = Request.Builder()
@@ -191,10 +185,8 @@ fun getKeyWordsAsync(scope: CoroutineScope, showID: Int, onSuccess: (String) -> 
                     // Handle unsuccessful response
                     onFailure(IOException("Unexpected response: ${response.code}"))
                 }
-                fetchingResults = false
             }
         } catch (e: IOException) {
-            fetchingResults = false
             // Handle network request failure
             withContext(Dispatchers.Main) {
                 onFailure(e)

@@ -54,8 +54,6 @@ android {
 
 dependencies {
 
-
-
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
@@ -89,13 +87,13 @@ dependencies {
     implementation(libs.lifecycle.runtime.ktx)
 
     implementation(libs.hilt.android)
-    //implementation(libs.hilt.lifecycle.viewmodel) // TODO OK
+    implementation(libs.hilt.lifecycle.viewmodel) // TODO OK
     implementation(libs.hilt.navigation.compose)
 
     implementation(libs.coil)
     implementation(libs.coil.compose)
-    //implementation(libs.accompanist.coil) // TODO OK
+    implementation(libs.accompanist.coil) // TODO OK
 
-   implementation(libs.palette) // TODO OK
+    implementation(libs.palette) // TODO OK
 
 }
