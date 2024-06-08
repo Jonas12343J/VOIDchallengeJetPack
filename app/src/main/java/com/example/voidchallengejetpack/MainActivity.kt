@@ -85,7 +85,7 @@ class MainActivity : ComponentActivity() {
                     0.0f
                 )
                 zoomX.interpolator = OvershootInterpolator()
-                zoomX.duration = 1200L
+                zoomX.duration = 500L
 
                 val zoomY = ObjectAnimator.ofFloat(
                     screen.iconView,
@@ -94,7 +94,7 @@ class MainActivity : ComponentActivity() {
                     0.0f
                 )
                 zoomY.interpolator = OvershootInterpolator()
-                zoomY.duration = 1200L
+                zoomY.duration = 500L
 
                 val fadeOut = ObjectAnimator.ofFloat(
                     screen.view,
@@ -103,10 +103,8 @@ class MainActivity : ComponentActivity() {
                     0f
                 )
                 fadeOut.interpolator = AccelerateInterpolator()
-                fadeOut.duration = 1200L
+                fadeOut.duration = 1000L
 
-                zoomX.doOnEnd { screen.remove() }
-                zoomY.doOnEnd { screen.remove() }
                 fadeOut.doOnEnd { screen.remove() }
 
                 zoomX.start()
