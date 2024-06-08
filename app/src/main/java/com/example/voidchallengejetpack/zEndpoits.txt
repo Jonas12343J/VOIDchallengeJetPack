@@ -1,0 +1,29 @@
+################################## TV SHOWS ##################################
+
+@GET PopularShows
+https://api.themoviedb.org/3/tv/popular?language=en-US&page=1&api_key=39a3c712614c598a6d5ca7a7c35a3ab1
+
+@GET SearchShows
+https://api.themoviedb.org/3/search/tv?include_adult=false&language=en-US&page=1&api_key=39a3c712614c598a6d5ca7a7c35a3ab1&query=
+
+    + query: string
+
+@GET TVShowGenres
+https://api.themoviedb.org/3/genre/tv/list?api_key=39a3c712614c598a6d5ca7a7c35a3ab1&language=en-US
+
+@GET TVShowDetails
+https://api.themoviedb.org/3/tv/2734?api_key=39a3c712614c598a6d5ca7a7c35a3ab1
+
+@GET TVShowKeywords
+
+@GET TVShowSeasonDetails
+
+
+
+
+
+
+################################### MOVIES ###################################
+
+@GET MovieGenres
+https://api.themoviedb.org/3/genre/movie/list?api_key=39a3c712614c598a6d5ca7a7c35a3ab1&language=en-US
