@@ -1,5 +1,6 @@
 package com.example.voidchallengejetpack
 
+import com.example.voidchallengejetpack.util.Constants.API_KEY
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -15,7 +16,7 @@ import java.io.IOException
 
 fun getPopularShowsAsync(onSuccess: (String) -> Unit, onFailure: (IOException) -> Unit) {
 
-    fetchingResults = true
+    //fetchingResults = true
 
     val client = OkHttpClient()
     val request = Request.Builder()
@@ -38,10 +39,10 @@ fun getPopularShowsAsync(onSuccess: (String) -> Unit, onFailure: (IOException) -
                     // Handle unsuccessful response
                     onFailure(IOException("Unexpected response: ${response.code}"))
                 }
-                fetchingResults = false
+                //fetchingResults = false
             }
         } catch (e: IOException) {
-            fetchingResults = false
+            //fetchingResults = false
             // Handle network request failure
             withContext(Dispatchers.Main) {
                 onFailure(e)
@@ -51,7 +52,7 @@ fun getPopularShowsAsync(onSuccess: (String) -> Unit, onFailure: (IOException) -
 }
 
 fun performSearchAsync(scope: CoroutineScope, query: String, onSuccess: (String) -> Unit, onFailure: (IOException) -> Unit) {
-    fetchingResults = true
+    //fetchingResults = true
 
     val client = OkHttpClient()
     val request = Request.Builder()
@@ -75,10 +76,10 @@ fun performSearchAsync(scope: CoroutineScope, query: String, onSuccess: (String)
                     // Handle unsuccessful response
                     onFailure(IOException("Unexpected response: ${response.code}"))
                 }
-                fetchingResults = false
+                //fetchingResults = false
             }
         } catch (e: IOException) {
-            fetchingResults = false
+            //fetchingResults = false
             // Handle network request failure
             withContext(Dispatchers.Main) {
                 onFailure(e)
@@ -89,7 +90,7 @@ fun performSearchAsync(scope: CoroutineScope, query: String, onSuccess: (String)
 
 fun getShowGenresAsync(onSuccess: (String) -> Unit, onFailure: (IOException) -> Unit) {
 
-    fetchingResults = true
+    //fetchingResults = true
 
     val client = OkHttpClient()
     val request = Request.Builder()
@@ -112,10 +113,10 @@ fun getShowGenresAsync(onSuccess: (String) -> Unit, onFailure: (IOException) -> 
                     // Handle unsuccessful response
                     onFailure(IOException("Unexpected response: ${response.code}"))
                 }
-                fetchingResults = false
+                //fetchingResults = false
             }
         } catch (e: IOException) {
-            fetchingResults = false
+            //fetchingResults = false
             // Handle network request failure
             withContext(Dispatchers.Main) {
                 onFailure(e)
@@ -160,7 +161,6 @@ fun getShowDetailsAsync(scope: CoroutineScope?, showID: Int, onSuccess: (String)
     }
 }
 
-
 fun getKeyWordsAsync(scope: CoroutineScope, showID: Int, onSuccess: (String) -> Unit, onFailure: (IOException) -> Unit) {
 
     val client = OkHttpClient()
@@ -197,7 +197,7 @@ fun getKeyWordsAsync(scope: CoroutineScope, showID: Int, onSuccess: (String) -> 
 
 fun getSeasonDetailsAsync(showID: Int, seasonID: Int, onSuccess: (String) -> Unit, onFailure: (IOException) -> Unit) {
 
-    fetchingResults = true
+    //fetchingResults = true
 
     val client = OkHttpClient()
     val request = Request.Builder()
@@ -220,10 +220,10 @@ fun getSeasonDetailsAsync(showID: Int, seasonID: Int, onSuccess: (String) -> Uni
                     // Handle unsuccessful response
                     onFailure(IOException("Unexpected response: ${response.code}"))
                 }
-                fetchingResults = false
+                //fetchingResults = false
             }
         } catch (e: IOException) {
-            fetchingResults = false
+            //fetchingResults = false
             // Handle network request failure
             withContext(Dispatchers.Main) {
                 onFailure(e)

@@ -2,19 +2,21 @@
 
 package com.example.voidchallengejetpack
 
-import android.graphics.drawable.Drawable
 import androidx.compose.animation.Animatable
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -27,10 +29,12 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
@@ -39,23 +43,25 @@ import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.Shape
-import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
@@ -72,24 +78,27 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.SubcomposeAsyncImage
 //import coil.compose.rememberImagePainter
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
+import com.example.voidchallengejetpack.data.remote.responses.CastMember
+import com.example.voidchallengejetpack.data.remote.responses.SeasonDetails
+import com.example.voidchallengejetpack.util.Constants.IMG_PATH_200
 import kotlinx.coroutines.delay
 import java.util.UUID
+import com.example.voidchallengejetpack.data.remote.responses.Episode
+
+data class DropDownItem(
+    val seasonNumber: Int,
+    val name: String
+)
 
 @Immutable
 data class Person(
     val name: String,
     val profilePath: String,
     val roles: String,
-    val id: String = UUID.randomUUID().toString()
-)
-
-@Immutable
-data class Episode(
-    val name: String,
-    val runtime: Int,
     val id: String = UUID.randomUUID().toString()
 )
 
@@ -174,7 +183,7 @@ fun SkeletonWrapperView(
 @Composable
 fun SearchBar(
     modifier: Modifier = Modifier,
-    onSearch: (String) -> Unit,
+    onSearch: (String) -> Unit = {},
 ) {
     // State to hold the text value of the search bar
     val (text, setText) = remember { mutableStateOf("") }
@@ -224,27 +233,28 @@ fun SearchBar(
 }
 
 @Composable
+@Stable
 fun RatingBar(
     maxStars: Int = 5,
     rating: Double,
     modifier: Modifier,
-    string: String
+    string: String? = ""
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
 
-    ) {
+        ) {
         for (i in 1..maxStars) {
             Icon(
 
                 imageVector = Icons.Filled.Star,
                 contentDescription = null,
-               // tint = if (i <= rating) colorResource(id = R.color.themeColorSec) else colorResource(id = R.color.black).copy(alpha = 0.8f),
+                tint = if (i <= rating) colorResource(id = R.color.themeColorSec) else colorResource(id = R.color.grayish_text).copy(alpha = 0.8f),
                 modifier = modifier
             )
         }
 
-        if (string.isNotEmpty()) {
+        if (string!!.isNotEmpty()) {
             Text(
                 text = string,
                 color = Color.White,
@@ -262,7 +272,7 @@ fun RemoteImage(url: String, modifier: Modifier = Modifier, placeholderResId: In
         model = url,
         contentDescription = null,
         modifier = modifier
-        ) {
+    ) {
         it.error(placeholderResId)
             .load(url)
 
@@ -300,8 +310,8 @@ fun LoadingScreen() {
     Column (
         Modifier
             .fillMaxHeight(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ){
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ){
 
         Text(
             text = loadingText,
@@ -328,15 +338,80 @@ fun doubleColorText(prefix: String, suffix: String) : AnnotatedString {
 }
 
 @Composable
-fun myExposedDropdownMenuBox(nSeasons: Int): Int {
-    val options = Array(nSeasons) { i -> "Season ${i + 1}" }
+fun dropDownMenu(
+    itemList: List<SeasonDetails>,
+) : Int {
+    var isContextMenuVisible by rememberSaveable {
+        mutableStateOf(false)
+    }
+
+    var selectedSeason by remember {
+        mutableStateOf(itemList[0])
+    }
+
+
+    Row (
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .clip(RoundedCornerShape(8.dp))
+            .background(color = colorResource(id = R.color.grayish_text))
+            .pointerInput(true) {
+                detectTapGestures(
+                    onTap = {
+                        isContextMenuVisible = !isContextMenuVisible
+                    }
+                )
+            }
+            .padding(10.dp)
+    ) {
+        Text(
+            text = selectedSeason.name,
+        )
+
+        ExposedDropdownMenuDefaults.TrailingIcon(
+            expanded = isContextMenuVisible
+        )
+    }
+
+    DropdownMenu(
+        expanded = isContextMenuVisible,
+        onDismissRequest = { isContextMenuVisible = false },
+        modifier = Modifier
+            .heightIn(max = 240.dp),
+    ) {
+
+        itemList.forEach {item ->
+            DropdownMenuItem(
+                text = { Text(text = item.name) },
+                onClick = {
+                    selectedSeason = item
+                    isContextMenuVisible = false
+                }
+            )
+            HorizontalDivider()
+        }
+    }
+    return selectedSeason.season_number
+}
+
+@Composable
+fun myExposedDropdownMenuBox(
+    itemList: List<SeasonDetails>
+): Int {
     var expanded by remember { mutableStateOf(false) }
-    var selectedText by remember { mutableStateOf("Season 1") }
-    var selectedSeason by remember { mutableIntStateOf(1) }
+    var selectedText by remember { mutableStateOf(itemList[0].name) }
+    var selectedSeason by remember { mutableIntStateOf(itemList[0].season_number) }
 
     Box(
         modifier = Modifier
             .clip(RoundedCornerShape(8.dp))
+            .pointerInput(true) {
+                detectTapGestures(
+                    onTap = {
+                        expanded = !expanded
+                    }
+                )
+            }
     ) {
         ExposedDropdownMenuBox(
             expanded = expanded,
@@ -354,30 +429,26 @@ fun myExposedDropdownMenuBox(nSeasons: Int): Int {
                 Text(
 
                     text = selectedText,
-                    fontSize = 10.sp,
 
                     modifier = Modifier
-                        .padding(start = 8.dp)
+                        .padding(10.dp)
 
                 )
                 ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
-
             }
 
             ExposedDropdownMenu(
                 expanded = expanded,
                 onDismissRequest = { expanded = false }
             ) {
-                options.forEach { item ->
+                itemList.forEach { item ->
                     DropdownMenuItem(
                         text = { Text(
-                            text = item,
-                            fontSize = 10.sp
+                            text = item.name,
                         )},
                         onClick = {
-                            selectedText = item
-                            selectedSeason = options.indexOf(item) + 1
-                            episodeList = emptyList()
+                            selectedText = item.name
+                            selectedSeason = item.season_number
                             expanded = false
                         }
                     )
@@ -388,8 +459,9 @@ fun myExposedDropdownMenuBox(nSeasons: Int): Int {
     return selectedSeason
 }
 
+
 @Composable
-fun CastMemberLayout(castMember: Person) {
+fun CastMemberLayout(castMember: CastMember) {
 
     Column (
         modifier = Modifier
@@ -398,27 +470,44 @@ fun CastMemberLayout(castMember: Person) {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ){
-        if (castMember.profilePath != "null") {
-            RemoteImage( // Poster
+        if (castMember.profilePath != "") {
+            SubcomposeAsyncImage(
+                model = IMG_PATH_200 + castMember.profilePath,
+                filterQuality = FilterQuality.Low,
+                contentDescription = null,
 
-                url = IMG_PATH_200 + castMember.profilePath,
+                //placeholder = painterResource(id = R.drawable.img_placeholder),
+                loading = {
+                    CircularProgressIndicator(
+                        color = colorResource(id = R.color.themeColorSec),
+                        modifier = Modifier
+                            .align(Alignment.Center)
+                            .scale(.5f)
+                    )
+                },
 
-                placeholderResId = R.drawable.anonymous_profile,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(100.dp)
-            )
-        } else {
+                error = {
+                    Image(
+                        painter = painterResource(id = R.drawable.anonymous_profile),
+                        contentDescription = null,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(100.dp)
+                    )
+                },
+
+                )
+        } else  {
             Image(
                 painter = painterResource(id = R.drawable.anonymous_profile),
                 contentDescription = null,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(100.dp)
-
             )
         }
-        if (castMember.name != "null") {
+
+        if (castMember.name != "") {
             Text(
                 text = castMember.name,
                 color = colorResource(id = R.color.white),
@@ -427,17 +516,16 @@ fun CastMemberLayout(castMember: Person) {
             )
         } else {
             Text(
-                text = "Unknown",
+                text = "Anonymous",
                 color = colorResource(id = R.color.white),
                 fontSize = 8.sp,
             )
         }
 
-
-        if (castMember.roles != "null") {
+        if (castMember.roles.isNotEmpty()) {
             Text(text = "as" , color = colorResource(id = R.color.grayish_text), fontSize = 5.sp, fontStyle = FontStyle.Italic)
             Text(
-                text = castMember.roles,
+                text = castMember.roles[0].character,
                 color = colorResource(id = R.color.white),
                 fontSize = 6.sp,
                 fontStyle = FontStyle.Italic,
@@ -449,10 +537,12 @@ fun CastMemberLayout(castMember: Person) {
 }
 
 @Composable
-fun EpisodeLayout(episode: Episode) {
+fun EpisodeLayout(
+    episode: Episode,
+    modifier: Modifier = Modifier) {
 
     Row (
-        modifier = Modifier
+        modifier = modifier
             .clip(RoundedCornerShape(8.dp))
             .background(colorResource(id = R.color.grayish_text))
             .width(100.dp)
@@ -467,7 +557,7 @@ fun EpisodeLayout(episode: Episode) {
         Column (
             horizontalAlignment = Alignment.CenterHorizontally,
         ){
-            if (episode.runtime.toString() != "0") {
+            if (episode.runtime != 0) {
                 Text(
                     text = episode.runtime.toString() + " minutes",
                     color = colorResource(id = R.color.white),
@@ -510,25 +600,54 @@ fun LastEpisodeLayout(name: String, runtime: Int, stillPath: String) {
             .background(colorResource(id = R.color.themeColorPrim)),
     ){
         if (stillPath != "null") {
+            if (stillPath != "") {
+                SubcomposeAsyncImage(
+                    model = IMG_PATH_200 + stillPath,
+                    filterQuality = FilterQuality.Low,
+                    contentDescription = null,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .fillMaxHeight()
+                        .alpha(.5f),
+
+                    //placeholder = painterResource(id = R.drawable.img_placeholder),
+                    loading = {
+                        CircularProgressIndicator(
+                            color = colorResource(id = R.color.themeColorSec),
+                            modifier = Modifier
+                                .align(Alignment.Center)
+                                .scale(.5f)
+                        )
+                    },
+
+                    error = {
+                        Image(
+                            painter = painterResource(id = R.drawable.logo_transp_large),
+                            contentDescription = null,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(100.dp)
+                        )
+                    },
+
+                    )
+            }
             RemoteImage( // Poster
 
                 url = IMG_PATH_200 + stillPath,
 
                 placeholderResId = R.drawable.logo_transp_large,
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .fillMaxHeight()
+                    .fillMaxSize()
                     .alpha(.5f)
             )
-        } else {
+        } else if (stillPath == "null" || stillPath == "") {
             Image(
                 painter = painterResource(id = R.drawable.logo_transp_large),
                 contentDescription = null,
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .fillMaxHeight()
+                    .fillMaxSize()
                     .alpha(.4f)
-
             )
         }
 
@@ -574,14 +693,14 @@ fun Preview() {
         roles = "Some Character",
     )
 
-    val episode = Episode(
-        name = "Episode 1",
-        runtime = 37,
-    )
+    //val episode = Episode(
+    //name = "Episode 1",
+    //runtime = 37,
+    //)
 
     //CastMemberLayout(castMember = castMember)
 
-    EpisodeLayout(episode = episode)
+    //EpisodeLayout(episode = episode)
 
     //LastEpisodeLayout(name = "Episode 1", runtime = 60, stillPath = "https://sample-url.com/poster.jpg")
 

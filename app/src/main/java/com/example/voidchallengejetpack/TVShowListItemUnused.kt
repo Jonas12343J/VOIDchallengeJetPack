@@ -1,6 +1,5 @@
 package com.example.voidchallengejetpack
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -12,10 +11,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
@@ -24,8 +19,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 //import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.rememberNavController
-import coil.Coil
+import coil.compose.AsyncImage
+import com.example.voidchallengejetpack.util.Constants.IMG_PATH_200
 //import com.example.voidchallengejetpack.data.models.TVShowListEntry
 //import dagger.hilt.android.lifecycle.HiltViewModel
 import java.util.Locale
@@ -233,7 +228,7 @@ fun TVShowItem(tvShow: TVShow, navController: NavHostController) {
 */
 
 @Composable
-fun TVShowItemLighter(tvShow: TVShow, navController: NavHostController, loading: Boolean) {
+fun TVShowItemLighter(tvShow: TVShow, navController: NavHostController) {
     Row(
 
         modifier = Modifier
@@ -243,13 +238,23 @@ fun TVShowItemLighter(tvShow: TVShow, navController: NavHostController, loading:
             .height(160.dp)
             .clickable {
                 navController.navigate(
-                    TVShowDetailsScreen(
+                    "tv_show_details_screen/${tvShow.id}"
+                    /*TVShowDetailsScreen(
                         id = tvShow.id,
-                    )
+                    )*/
                 )
             }
 
     ) {
+        AsyncImage(
+            model = IMG_PATH_200 + tvShow.imagePosterURL,
+            contentDescription = null,
+            modifier = Modifier
+                .fillMaxHeight()
+                .fillMaxWidth(.3f)
+                .width(90.dp),
+            placeholder = painterResource(id = R.drawable.img_placeholder),
+        )
             /*if (tvShow.imagePosterURL != "null") {
                 RemoteImage( // Poster
 
@@ -358,7 +363,6 @@ fun TVShowItemLighter(tvShow: TVShow, navController: NavHostController, loading:
     }
 }
 
-
 @Preview(showBackground = true)
 @Composable
 fun PreviewTVShowItem() {
@@ -370,9 +374,9 @@ fun PreviewTVShowItem() {
         date = "2024-05-07",
         genres = "Drama, Comedy",
         description = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
-        rating = 4.0,
-        plus18 = false
+        rating = 7.39,
+        plus18 = true
     )
-    //TVShowItem(tvShow = tvShow, navController = rememberNavController())
-    TVShowItemLighter(tvShow = tvShow, navController = rememberNavController(), false)
+    //TVShowItemLighter(tvShow = tvShow, navController = rememberNavController())
 }
+
