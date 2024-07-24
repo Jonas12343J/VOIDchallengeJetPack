@@ -4,6 +4,8 @@ plugins {
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.jetbrainsKotlinAndroid)
     alias(libs.plugins.kotlin.serialization)
+    id("kotlin-kapt")
+    id("dagger.hilt.android.plugin")
 }
 
 android {
@@ -54,6 +56,7 @@ android {
 
 dependencies {
 
+
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
@@ -87,8 +90,13 @@ dependencies {
     implementation(libs.lifecycle.runtime.ktx)
 
     implementation(libs.hilt.android)
-    implementation(libs.hilt.lifecycle.viewmodel) // TODO OK
+    kapt(libs.hilt.android.compiler) // TODO
+    //runtimeOnly(libs.hilt.android.compiler)
+    //implementation(libs.hilt.lifecycle.viewmodel) // TODO OK
+    kapt(libs.hilt.compiler) // TODO
+    //runtimeOnly(libs.dagger.hilt.compiler)
     implementation(libs.hilt.navigation.compose)
+    //implementation(libs.hilt.android.gradle.plugin)
 
     implementation(libs.coil)
     implementation(libs.coil.compose)
@@ -96,4 +104,11 @@ dependencies {
 
     implementation(libs.palette) // TODO OK
 
+    implementation(libs.timber)
+
+
+}
+
+kapt {
+    correctErrorTypes = true
 }

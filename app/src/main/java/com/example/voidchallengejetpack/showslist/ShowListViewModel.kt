@@ -1,14 +1,12 @@
-package com.example.voidchallengejetpack
+package com.example.voidchallengejetpack.showslist
 
 import android.graphics.Bitmap
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.toArgb
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.palette.graphics.Palette
 import com.example.voidchallengejetpack.data.models.ShowListEntry
 import com.example.voidchallengejetpack.data.remote.responses.Genre
@@ -86,6 +84,10 @@ class ShowListViewModel @Inject constructor(
                     loadError.value = result.message!!
                     isLoading.value = false
                 }
+
+                is Resource.Loading -> {
+                    isLoading.value = true
+                }
             }
         }
         return showsList.value.isEmpty()
@@ -136,6 +138,10 @@ class ShowListViewModel @Inject constructor(
                         loadError.value = result.message!!
                         isLoading.value = false
                     }
+
+                    is Resource.Loading -> {
+                        isLoading.value = true
+                    }
                 }
             }
         }
@@ -162,19 +168,9 @@ class ShowListViewModel @Inject constructor(
                     loadError.value = result.message!!
                     isLoading.value = false
                 }
-            }
-        }
-    }
 
-    fun getShowDetails(showID: Int) {
-        viewModelScope.launch {
-            when (val result = repository.getShowDetails(showID)) {
-                is Resource.Success -> {
-                    // TODO
-                }
-
-                is Resource.Error -> {
-                    loadError.value = result.message!!
+                is Resource.Loading -> {
+                    isLoading.value = true
                 }
             }
         }

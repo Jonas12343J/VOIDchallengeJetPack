@@ -1,6 +1,6 @@
 package com.example.voidchallengejetpack.data.remote.responses
 
-data class PopularShows(
+data class ShowsResultList(
     val page: Int,
     val results: List<ShowResult>,
     val total_pages: Int,

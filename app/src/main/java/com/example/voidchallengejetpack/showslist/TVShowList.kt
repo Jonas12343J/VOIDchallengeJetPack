@@ -1,4 +1,4 @@
-package com.example.voidchallengejetpack
+package com.example.voidchallengejetpack.showslist
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -44,8 +44,11 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import coil.compose.SubcomposeAsyncImage
+import com.example.voidchallengejetpack.R
+import com.example.voidchallengejetpack.SearchBar
+import com.example.voidchallengejetpack.TVShowDetailsScreen
 import com.example.voidchallengejetpack.data.models.ShowListEntry
-import com.example.voidchallengejetpack.showslist.ShowListViewModel
+import com.example.voidchallengejetpack.displayedText
 import com.example.voidchallengejetpack.util.Constants.IMG_PATH_200
 import com.example.voidchallengejetpack.util.Constants.IMG_PATH_300
 
