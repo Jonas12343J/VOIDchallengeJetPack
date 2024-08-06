@@ -35,6 +35,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -56,6 +57,7 @@ import com.example.voidchallengejetpack.data.remote.responses.Keywords
 import com.example.voidchallengejetpack.data.remote.responses.SeasonDetails
 import com.example.voidchallengejetpack.doubleColorText
 import com.example.voidchallengejetpack.myExposedDropdownMenuBox
+import kotlinx.coroutines.delay
 import java.text.SimpleDateFormat
 import java.util.Locale
 
@@ -147,6 +149,10 @@ fun ShowDetailsTopSection(
         contentAlignment = Alignment.TopStart,
         modifier = modifier
     ) {
+
+        // Prevents multiple clicks in a short time to pop the backstack to an undefined screen
+        var isClickable by remember { mutableStateOf(true) }
+
         Icon(
             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
             contentDescription = null,
@@ -154,10 +160,15 @@ fun ShowDetailsTopSection(
             modifier = Modifier
                 .size(36.dp)
                 .offset(8.dp, 16.dp)
-                .clickable {
+                .clickable(enabled = isClickable) {
+                    isClickable = false
                     navHostController.popBackStack()
                 }
-        )
+            )
+        LaunchedEffect(key1 = isClickable) {
+            delay(2000)
+            isClickable = true
+        }
     }
 }
 

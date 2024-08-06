@@ -92,7 +92,7 @@ class ShowListViewModel @Inject constructor(
         return !emptySearch.value
     }
 
-    fun loadShows() {
+    fun loadShows() : Boolean {
         if (cachedTVShowList.isNotEmpty()) {
             showsList.value = cachedTVShowList
         }
@@ -143,9 +143,10 @@ class ShowListViewModel @Inject constructor(
                 }
             }
         }
+        return showsList.value.isNotEmpty()
     }
 
-    fun loadGenres() {
+    fun loadGenres() : List<Genre> {
         isLoading.value = true
         viewModelScope.launch {
             when (val result = repository.getShowGenres()) {
@@ -172,5 +173,6 @@ class ShowListViewModel @Inject constructor(
                 }
             }
         }
+        return genresList.value
     }
 }

@@ -66,6 +66,7 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
     implementation(libs.androidx.constraintlayout.compose)
+    testImplementation("org.junit.jupiter:junit-jupiter:5.8.1")
 
 
     //androidTestImplementation(platform(libs.androidx.compose.bom))
