@@ -1,5 +1,8 @@
 package com.example.voidchallengejetpack.data.models
 
+import androidx.compose.runtime.Immutable
+
+@Immutable
 class ShowListEntry(
     val id: Int,
     val title: String,

@@ -31,12 +31,10 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -48,11 +46,11 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.voidchallengejetpack.CastMemberLayout
 import com.example.voidchallengejetpack.EpisodeLayout
+import com.example.voidchallengejetpack.NextEpisodeLayout
 import com.example.voidchallengejetpack.R
 import com.example.voidchallengejetpack.data.remote.responses.Keywords
 import com.example.voidchallengejetpack.data.remote.responses.SeasonDetails
@@ -60,11 +58,8 @@ import com.example.voidchallengejetpack.doubleColorText
 import com.example.voidchallengejetpack.myExposedDropdownMenuBox
 import java.text.SimpleDateFormat
 import java.util.Locale
-import kotlin.contracts.Effect
 
 var keywords by mutableStateOf("")
-
-
 
 @Composable
 fun ShowDetailsScreen(
@@ -81,15 +76,16 @@ fun ShowDetailsScreen(
         value = viewModel.getShowKeywords(showId)
     }.value
 
+    DisposableEffect(key1 = showId) {
+        onDispose {
+            keywords = ""
+        }
+    }
+
     Box(
         Modifier
             .background(Color.Black)
     ) {
-        // LazyColumn(
-        //    modifier = Modifier
-        //       .fillMaxSize()
-                    //) {
-            //item {
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -102,6 +98,7 @@ fun ShowDetailsScreen(
                         contentDescription = null,
                         modifier = Modifier
                             .fillMaxWidth()
+                            .fillMaxHeight(.75f)
                             .alpha(.5f),
                     )
                 }
@@ -118,256 +115,6 @@ fun ShowDetailsScreen(
                             )
                         )
                 )
-
-                ////////////////////////////////////// todo re add ////////////////////////////
-
-                /*
-                Column (
-                        horizontalAlignment = Alignment.Start,
-                        modifier = modifier
-                            .fillMaxSize()
-                            .padding(start = 24.dp, end = 24.dp, top = 150.dp)
-                    ){
-
-                        Spacer(modifier = Modifier.height(16.dp))
-
-
-                        showDetails.data?.name?.let {
-                            Text(
-                                text = it,
-                                fontSize = 18.sp,
-                                color = Color.White
-                            )
-                            Spacer(modifier = Modifier.height(4.dp))
-                        }
-
-                        showDetails.data?.tagline?.let {
-                            Text(
-                                text = it,
-                                fontSize = 10.sp,
-                                color = Color.White,
-                                fontStyle = FontStyle.Italic
-                            )
-                            Spacer(modifier = Modifier.height(12.dp))
-                        }
-
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            showDetails.data?.adult?.let {
-                                if (it) {
-                                    Image(
-                                        painter = painterResource(id = R.drawable.plus18),
-                                        contentDescription = null,
-                                        modifier = Modifier
-                                            .size(20.dp)
-                                    )
-                                }
-                            }
-
-                            showDetails.data?.vote_average?.let {
-                                if (it != 0.0) {
-                                    Spacer(Modifier.width(8.dp))
-
-                                    Text(
-                                        text = "${"%.2f".format(it)} ★",
-                                        color = Color.White,
-                                        fontSize = 12.sp,
-                                    )
-                                }
-                            }
-
-                            showDetails.data?.first_air_date?.let {
-                                if (it != "") {
-                                    Spacer(Modifier.width(8.dp))
-                                    Text(
-                                        text = it.substring(0, 4),
-                                        color = Color.White,
-                                        fontSize = 12.sp,
-                                    )
-                                }
-                            }
-
-                            showDetails.data?.episode_run_time?.let {
-                                println(it)
-                                if (it.isNotEmpty() && it[0] != 0) {
-                                    Spacer(Modifier.width(8.dp))
-                                    Image(
-                                        painter = painterResource(id = R.drawable.baseline_access_time_24),
-                                        contentDescription = null,
-                                        Modifier
-                                            .size(24.dp)
-                                            .padding(end = 4.dp)
-                                    )
-                                    Text(
-                                        text = "${it[0]} min",
-                                        color = Color.White,
-                                        fontSize = 12.sp,
-                                    )
-                                }
-                            }
-
-                        }
-                        showDetails.data?.overview?.let {
-                            if (it != "") {
-                                Spacer(modifier = Modifier.height(16.dp))
-                                Text(
-                                    text = it,
-                                    color = colorResource(id = R.color.grayish_text),
-                                    fontSize = 12.sp,
-                                    maxLines = 5,
-                                    overflow = TextOverflow.Ellipsis
-                                )
-                            }
-                        }
-
-                        showDetails.data?.type?.let {
-                            if (it != "") {
-                                Spacer(modifier = Modifier.height(16.dp))
-                                val text = doubleColorText(String.format("%-22s", "Type:"), it)
-                                Text(
-                                    text = text,
-                                    color = Color.White,
-                                    fontSize = 12.sp,
-                                )
-                            }
-                        }
-
-                        showDetails.data?.origin_country?.let {
-                            if (it.isNotEmpty()) {
-                                Spacer(modifier = Modifier.height(8.dp))
-                                val text = doubleColorText(String.format("%-20s", "Country:"), it[0])
-                                Text(
-                                    text = text,
-                                    color = Color.White,
-                                    fontSize = 12.sp,
-                                )
-                            }
-                        }
-
-                        // TODO review
-                        showDetails.data?.genres?.let {
-                            if (it.isNotEmpty()) {
-                                Spacer(modifier = Modifier.height(8.dp))
-
-                                val genres = mutableStateOf("")
-                                for (genre in it) {
-                                    if (genres.value != "") genres.value += ", "
-                                    genres.value += genre.name
-                                }
-
-                                val text = doubleColorText(String.format("%-20s", "Genres:"), genres.value)
-                                Text(
-                                    text = text,
-                                    fontSize = 12.sp,
-                                    color = Color.White
-                                )
-                            }
-                        }
-
-                        showDetails.data?.first_air_date?.let {
-                            if (it != "") {
-                                Spacer(modifier = Modifier.height(8.dp))
-                                Text(
-                                    text = String.format("%-19s", "Release:") + SimpleDateFormat("MMM dd, yyyy", Locale.ENGLISH).format(
-                                        SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH).parse(it)!!
-                                    ),
-                                    fontSize = 12.sp,
-                                    color = colorResource(id = R.color.grayish_text)
-                                )
-                            }
-                        }
-
-                        // TODO review
-                        showDetails.data?.spoken_languages?.let {
-                            if (it.isNotEmpty()) {
-
-                                Spacer(modifier = Modifier.height(8.dp))
-
-                                val spokenLanguages = mutableStateOf("")
-                                for (language in it) {
-                                    if (spokenLanguages.value != "") spokenLanguages.value += ", "
-                                    spokenLanguages.value += language.english_name
-                                }
-                                val text = doubleColorText(String.format("%-16s", "Languages:"), spokenLanguages.value)
-                                Text(
-                                    text = text,
-                                    fontSize = 12.sp,
-                                    color = Color.White
-                                )
-                            }
-                        }
-
-                        // TODO review
-                        showDetails.data?.created_by?.let {
-                            if (it.isNotEmpty()) {
-                                Spacer(modifier = Modifier.height(8.dp))
-
-                                val creators = mutableStateOf("")
-                                for (creator in it) {
-                                    if (creators.value != "") creators.value += ", "
-                                    creators.value += creator.name
-                                }
-                                val text = doubleColorText(String.format("%-19s", "Creators:"), creators.value)
-                                Text(
-                                    text = text,
-                                    fontSize = 12.sp,
-                                    color = Color.White
-                                )
-                            }
-                        }
-
-                        // TODO review
-                        showDetails.data?.production_companies?.let {
-                            if (it.isNotEmpty()) {
-
-                                Spacer(modifier = Modifier.height(8.dp))
-
-                                val productionCompanies = mutableStateOf("")
-                                for (company in it) {
-                                    if (productionCompanies.value != "") productionCompanies.value += ", "
-                                    productionCompanies.value += company.name
-                                }
-
-                                val text = doubleColorText(String.format("%-17s", "Production:"), productionCompanies.value)
-                                Text(
-                                    text = text,
-                                    fontSize = 12.sp,
-                                    color = Color.White,
-                                )
-                            }
-                        }
-
-                        showDetails.data?.status?.let {
-                            if (it != "") {
-                                Spacer(modifier = Modifier.height(8.dp))
-                                val text = doubleColorText(String.format("%-21s", "Status:"), it)
-                                Text(
-                                    text = text,
-                                    fontSize = 12.sp,
-                                    color = Color.White
-                                )
-                            }
-                        }
-
-                    }
-                    */
-
-                    ////////////////////////////////////// todo re add ////////////////////////////
-
-                    /*showDetails.data?.keywords?.let {
-                        if (it.isNotEmpty()) {
-                            Spacer(modifier = Modifier.height(8.dp))
-                            val text = doubleColorText(String.format("%-17s", "Keywords:"), it.joinToString(", ") { it.name })
-                            Text(
-                                text = text,
-                                fontSize = 12.sp,
-                                color = Color.White
-                            )
-                        }
-                    }*/
-
-
             }
 
             ShowDetailsTopSection(
@@ -388,373 +135,6 @@ fun ShowDetailsScreen(
                     .align(Alignment.Center)
             )
         }
-
-                        /*
-                        Column(
-                            Modifier
-                                .fillMaxHeight()
-                                .fillMaxWidth(res.screenPercentage)
-                                .padding(start = 24.dp, end = 24.dp, top = 150.dp),
-                            horizontalAlignment = Alignment.Start,
-                        ) {
-
-
-                            Spacer(modifier = Modifier.height(16.dp))
-
-                            if (res.name != "") {
-
-                                Text(
-                                    text = res.name,
-                                    fontSize = 18.sp,
-                                    color = Color.White
-                                )
-                                Spacer(modifier = Modifier.height(4.dp))
-                            }
-
-
-                            if (res.tagline != "") {
-
-                                Text(
-                                    text = "\t" + res.tagline,
-                                    fontSize = 10.sp,
-                                    color = Color.White,
-                                    fontStyle = FontStyle.Italic
-                                )
-                                Spacer(modifier = Modifier.height(12.dp))
-                            }
-
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                if (res.adult) {
-                                    Image(
-                                        painter = painterResource(id = R.drawable.plus18),
-                                        contentDescription = null,
-                                        modifier = Modifier
-                                            .size(20.dp)
-
-                                    )
-                                }
-
-                                if (res.voteAverage != 0.0) {
-                                    Spacer(Modifier.width(8.dp))
-
-                                    Text(
-                                        text = "${res.voteAverage} ★",
-                                        color = Color.White,
-                                        fontSize = 12.sp,
-                                    )
-                                }
-
-                                if (res.releaseDate != "") {
-                                    Spacer(Modifier.width(8.dp))
-
-                                    Text(
-                                        text = res.releaseDate.substring(0, 4),
-                                        color = Color.White,
-                                        fontSize = 12.sp,
-                                    )
-                                }
-
-                                if (res.episodeRunTime != 0) {
-                                    Spacer(Modifier.width(8.dp))
-
-                                    Image(
-                                        painter = painterResource(id = R.drawable.baseline_access_time_24),
-                                        contentDescription = null,
-                                        Modifier
-                                            .size(24.dp)
-                                            .padding(end = 4.dp)
-                                    )
-
-                                    Text(
-                                        text = "${res.episodeRunTime} min",
-                                        color = Color.White,
-                                        fontSize = 12.sp,
-                                    )
-                                }
-                            }
-
-                            if (res.overview != "") {
-
-                                Spacer(modifier = Modifier.height(16.dp))
-
-                                Text(
-                                    text = res.overview,
-                                    color = colorResource(id = R.color.grayish_text),
-                                    fontSize = 12.sp,
-                                    maxLines = 5,
-                                    overflow = TextOverflow.Ellipsis
-                                )
-                            }
-
-                            if (res.type != "") {
-
-                                Spacer(modifier = Modifier.height(16.dp))
-
-                                text =
-                                    doubleColorText(String.format("%-22s", "Type:"), res.type)
-
-                                Text(
-                                    text = text,
-                                    color = Color.White,
-                                    fontSize = 12.sp,
-                                )
-                            }
-
-                            if (res.originCountry != "") {
-
-                                Spacer(modifier = Modifier.height(8.dp))
-
-                                text = doubleColorText(
-                                    String.format("%-20s", "Country:"),
-                                    res.originCountry
-                                )
-
-                                Text(
-                                    text = text,
-                                    color = Color.White,
-                                    fontSize = 12.sp,
-                                )
-                            }
-
-                            if (res.genresString != "") {
-                                text =
-                                    doubleColorText(
-                                        String.format("%-20s", "Genres:"),
-                                        res.genresString
-                                    )
-
-                                Spacer(modifier = Modifier.height(8.dp))
-
-                                Text(
-                                    text = text,
-                                    fontSize = 12.sp,
-                                    color = Color.White
-                                )
-
-                            }
-
-                            if (res.releaseDate != "") {
-
-                                Spacer(modifier = Modifier.height(8.dp))
-
-                                Text(
-                                    text = String.format(
-                                        "%-19s",
-                                        "Release:"
-                                    ) + SimpleDateFormat("MMM dd, yyyy", Locale.ENGLISH).format(
-                                        SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH).parse(
-                                            res.releaseDate
-                                        )!!
-                                    ),
-                                    fontSize = 12.sp,
-                                    color = colorResource(id = R.color.grayish_text)
-                                )
-                            }
-
-                            if (res.spokenLanguagesString != "") {
-
-                                Spacer(modifier = Modifier.height(8.dp))
-
-                                text = doubleColorText(
-                                    String.format("%-16s", "Languages:"),
-                                    res.spokenLanguagesString
-                                )
-
-                                Text(
-                                    text = text,
-                                    fontSize = 12.sp,
-                                    color = Color.White
-                                )
-                            }
-
-                            if (res.creatorsString != "") {
-
-                                Spacer(modifier = Modifier.height(8.dp))
-
-                                text = doubleColorText(
-                                    String.format("%-19s", "Creators:"),
-                                    res.creatorsString
-                                )
-
-                                Text(
-                                    text = text,
-                                    fontSize = 12.sp,
-                                    color = Color.White
-                                )
-                            }
-
-                            if (res.productionString != "") {
-
-                                Spacer(modifier = Modifier.height(8.dp))
-
-                                text = doubleColorText(
-                                    String.format("%-17s", "Production:"),
-                                    res.productionString
-                                )
-
-                                Text(
-                                    text = text,
-                                    fontSize = 12.sp,
-                                    color = Color.White
-                                )
-                            }
-
-                            if (res.status != "") {
-
-                                Spacer(modifier = Modifier.height(8.dp))
-
-                                text = doubleColorText(
-                                    String.format("%-21s", "Status:"),
-                                    res.status
-                                )
-
-                                Text(
-                                    text = text,
-                                    fontSize = 12.sp,
-                                    color = Color.White
-                                )
-                            }
-
-                            if (res.keywordsString != "") {
-
-                                Spacer(modifier = Modifier.height(8.dp))
-
-                                text = doubleColorText(
-                                    String.format("%-17s", "Keywords:"),
-                                    res.keywordsString
-                                )
-
-                                Text(
-                                    text = text,
-                                    fontSize = 12.sp,
-                                    color = Color.White
-                                )
-                            }
-
-                            Spacer(modifier = Modifier.height(24.dp))
-
-                            // SEASONS
-                            if (res.seasons != null) {
-
-                                val size = res.seasons!!.length()
-
-                                val selectedSeason = myExposedDropdownMenuBox(size)
-
-                                getSeasonDetailsAsync(
-                                    showID = tvShowId,
-                                    seasonID = selectedSeason,
-                                    onSuccess = { response ->
-                                        seasonDetails = JSONObject(response)
-                                    },
-                                    onFailure = { exception ->
-                                        // Handle network request failure
-                                        println("Error: ${exception.message}")
-                                    }
-                                )
-
-                                val episodes = seasonDetails.optJSONArray("episodes")
-
-                                if (episodes != null) {
-                                    episodeList = emptyList()
-                                    for (i in 0 until episodes.length()) {
-                                        val episode = episodes.getJSONObject(i)
-                                        episodeList += Episode(
-                                            name = episode.optString("name", ""),
-                                            runtime = episode.optInt("runtime", 0),
-                                        )
-                                    }
-                                }
-                            }
-
-                            Spacer(modifier = Modifier.height(8.dp))
-
-                            LazyRow(modifier = Modifier.fillMaxWidth()) {
-                                items(
-                                    items = episodeList,
-                                    key = { it.id }
-                                ) { episode ->
-                                    EpisodeLayout(episode = episode)
-                                    Spacer(modifier = Modifier.width(2.dp))
-                                }
-                            }
-
-                            Spacer(modifier = Modifier.height(24.dp))
-
-                            if (res.lastEpisodeToAir != null) {
-                                Text(
-                                    text = "Most recent episode",
-                                    color = Color.White,
-                                    fontSize = 16.sp
-                                )
-
-                                Spacer(modifier = Modifier.height(8.dp))
-
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    LastEpisodeLayout(
-                                        name = res.lastEpisodeToAir.optString("name", ""),
-                                        runtime = res.lastEpisodeToAir.optInt("runtime", 0),
-                                        stillPath = res.lastEpisodeToAir.optString(
-                                            "still_path", seasonPoster
-                                        )
-                                    )
-
-                                    Spacer(modifier = Modifier.width(8.dp))
-
-                                    val episodeNumber =
-                                        res.lastEpisodeToAir.optInt("episode_number", 0)
-                                    val episodeString =
-                                        if (episodeNumber != 0) "Ep nº$episodeNumber: " else "Last episode: "
-                                    val epOverview =
-                                        res.lastEpisodeToAir.optString("overview", "")
-                                    if (epOverview != "") Text(
-                                        text = doubleColorText(
-                                            prefix = episodeString,
-                                            suffix = epOverview
-                                        ),
-                                        color = Color.White,
-                                        fontSize = 12.sp,
-                                        maxLines = 4,
-                                        overflow = TextOverflow.Ellipsis
-                                    )
-                                }
-                            }
-
-                            if (res.cast != null) {
-                                Spacer(modifier = Modifier.height(24.dp))
-
-                                Text(text = "Main Cast", color = Color.White, fontSize = 16.sp)
-
-                                Spacer(modifier = Modifier.height(12.dp))
-
-                                castMembers = emptyList()
-                                for (i in 0 until minOf((res.cast.length()), 10)) {
-                                    val castMember = res.cast.getJSONObject(i)
-                                    castMembers += Person(
-                                        name = castMember.getString("name"),
-                                        profilePath = castMember.getString("profile_path"),
-                                        roles = castMember.getJSONArray("roles")
-                                            .getJSONObject(0).getString("character")
-                                    )
-                                }
-                            }
-
-                            LazyRow(modifier = Modifier.fillMaxWidth()) {
-                                items(
-                                    items = castMembers,
-                                    key = { it.id }
-                                ) { castMember ->
-                                    CastMemberLayout(castMember = castMember)
-                                    Spacer(modifier = Modifier.width(4.dp))
-                                }
-                            }
-                        }
-
-                    }*/
-                //} items
-
-        //} lazy column
     }
 }
 
@@ -792,7 +172,7 @@ fun ShowDetailsStateWrapper(
         is Resource.Success -> {
             ShowDetailsSection(
                 showDetails = showDetails.data!!,
-                showKeywords = showKeywords.data!!,
+                showKeywords = showKeywords.data,
                 modifier = modifier
             )
         }
@@ -826,15 +206,13 @@ fun ShowDetailsStateWrapper(
 @Composable
 fun ShowDetailsSection(
     showDetails: ShowDetails,
-    modifier: Modifier = Modifier ,
-    showKeywords: Keywords? = null,
+    modifier: Modifier = Modifier,
+    showKeywords: Keywords?,
     viewModel: ShowDetailsViewModel = hiltViewModel()
 ) {
-
     val scrollState = rememberScrollState()
 
-    // TODO TERRIBLE!!! KEEPS RECOMPOSING
-    if (showKeywords != null) {
+    if (showKeywords != null && showKeywords.results.isNotEmpty()) {
         keywords = ""
         for (keyword in showKeywords.results) {
             if (keywords != "") keywords += ", "
@@ -845,8 +223,9 @@ fun ShowDetailsSection(
     Column (
         horizontalAlignment = Alignment.Start,
         modifier = modifier
-            .fillMaxSize()
-            .padding(start = 24.dp, end = 24.dp)
+            .fillMaxWidth()
+            .fillMaxHeight(.95f)
+            .padding(start = 24.dp, end = 24.dp, bottom = 16.dp)
             .verticalScroll(scrollState),
     ){
 
@@ -1102,110 +481,22 @@ fun ShowDetailsSection(
                         showID = showDetails.id
                     )
                 }
-
-
-
-
-                /*
-                if (seasonDetails is Resource.Success) {
-                    //println("result: ${seasonDetails.data!!.season_number}")
-                    SeasonEpisodeListSection(
-                        seasonDetails = seasonDetails,
-                        modifier = modifier
-                    )
-
-                }
-                else if (seasonDetails is Resource.Error) {
-                    Row(
-                        Modifier
-                            .fillMaxWidth(),
-                        horizontalArrangement = Arrangement.Center,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = seasonDetails.message!!,
-                            color = Color.Red,
-                            modifier = modifier,
-                            textAlign = TextAlign.Center,
-                            fontSize = 18.sp
-                        )
-                    }
-                }
-                else {
-                    Row(
-                        Modifier
-                            .fillMaxWidth(),
-                        horizontalArrangement = Arrangement.Center,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        CircularProgressIndicator(
-                            color = colorResource(id = R.color.themeColorSec),
-                            modifier = Modifier
-                                .size(40.dp)
-                        )
-                    }
-                }
-                */
-
-                /*
-
-                when (seasonDetails) {
-                    is Resource.Success -> {
-
-                        if (previousSeasonNumber != selectedSeasonNumber) {
-                            previousSeasonNumber = selectedSeasonNumber
-                            //return@let
-                            seasonDetails = produceState<Resource<SeasonDetails>>(initialValue = Resource.Loading()) {
-                                value = viewModel.getSeasonDetails(showDetails.id, selectedSeasonNumber)
-                            }.value
-                        }
-                        else {
-                            println("result: ${seasonDetails.data!!.season_number}")
-                            SeasonEpisodeListSection(
-                                seasonDetails = seasonDetails,
-                                modifier = modifier
-                            )
-
-                        }
-                    }
-
-                    is Resource.Error -> {
-                        Row(
-                            Modifier
-                                .fillMaxWidth(),
-                            horizontalArrangement = Arrangement.Center,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                text = seasonDetails.message!!,
-                                color = Color.Red,
-                                modifier = modifier,
-                                textAlign = TextAlign.Center,
-                                fontSize = 18.sp
-                            )
-                        }
-                    }
-                    is Resource.Loading -> {
-
-                        Row(
-                            Modifier
-                                .fillMaxWidth(),
-                            horizontalArrangement = Arrangement.Center,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            CircularProgressIndicator(
-                                color = colorResource(id = R.color.themeColorSec),
-                                modifier = Modifier
-                                    .size(40.dp)
-                            )
-                        }
-                    }
-                }
-*/
             }
         }
-        //  TODO CAST
-        showDetails.aggregate_credits?.cast?.let {
+
+        showDetails.next_episode_to_air.let {
+            if (it != null) {
+                Spacer(modifier = Modifier.height(24.dp))
+
+                Text(text = "Next Episode", color = Color.White, fontSize = 16.sp)
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                NextEpisodeLayout(it)
+            }
+        }
+
+        showDetails.aggregate_credits.cast.let {
             if (it.isNotEmpty()) {
                 Spacer(modifier = Modifier.height(24.dp))
 
@@ -1227,8 +518,22 @@ fun ShowDetailsSection(
                 }
             }
         }
-        
+
     }
+    Box(
+        contentAlignment = Alignment.BottomCenter,
+        modifier = Modifier
+            .fillMaxSize()
+    ) {
+        Text(
+            text = "Developed by Jóni Pereira as a VOID Software's challenge",
+            color = Color.Gray,
+            fontSize = 10.sp,
+            fontStyle = FontStyle.Italic
+
+        )
+    }
+
 }
 
 @Composable
@@ -1256,6 +561,7 @@ fun SeasonEpisodeListSection(
                     EpisodeLayout(
                         episode = episode,
                     )
+                    Spacer(modifier = Modifier.width(2.dp))
                 }
             }
         }

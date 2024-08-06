@@ -1,13 +1,8 @@
 package com.example.voidchallengejetpack.showslist
 
-import android.graphics.Bitmap
-import android.graphics.drawable.BitmapDrawable
-import android.graphics.drawable.Drawable
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.palette.graphics.Palette
 import com.example.voidchallengejetpack.data.models.ShowListEntry
 import com.example.voidchallengejetpack.data.remote.responses.Genre
 import com.example.voidchallengejetpack.repository.ShowRepository
@@ -36,22 +31,26 @@ class ShowListViewModel @Inject constructor(
     private var cachedTVShowList = listOf<ShowListEntry>()
     var isSearching = mutableStateOf(false)
 
+    var emptySearch = mutableStateOf(true)
+
+    val searchText = mutableStateOf("")
+
     init {
         loadGenres()
         loadShows()
         _isReady.value = true
     }
 
-    fun searchShowList(query: String) : Boolean {
+    fun searchShowList(query: String): Boolean {
 
         // CPU operation
         viewModelScope.launch(Dispatchers.Default) {
             isLoading.value = true
             when(val result = repository.searchShows(query)) {
                 is Resource.Success -> {
-                    val showEntries = result.data!!.results.mapIndexed { index, entry ->
+                    val showEntries = result.data!!.results.mapIndexed { _, entry ->
                         val id = entry.id
-                        val title = entry.name ?: ""
+                        val title = entry.name
                         val posterURL = entry.poster_path ?: ""
                         val backgroundURL = entry.backdrop_path ?: ""
                         val date = entry.first_air_date ?: ""
@@ -60,7 +59,6 @@ class ShowListViewModel @Inject constructor(
                         val rating = entry.vote_average ?: ""
                         val adult = entry.adult ?: ""
 
-                        // TODO genres string & empty values
                         ShowListEntry(
                             id,
                             title,
@@ -90,7 +88,8 @@ class ShowListViewModel @Inject constructor(
                 }
             }
         }
-        return showsList.value.isEmpty()
+        emptySearch.value = showsList.value.isEmpty()
+        return !emptySearch.value
     }
 
     fun loadShows() {
@@ -103,9 +102,9 @@ class ShowListViewModel @Inject constructor(
                 when (val result = repository.getPopularShows()) {
                     is Resource.Success -> {
 
-                        val showEntries = result.data!!.results.mapIndexed { index, entry ->
+                        val showEntries = result.data!!.results.mapIndexed { _, entry ->
                             val id = entry.id
-                            val title = entry.name ?: ""
+                            val title = entry.name
                             val posterURL = entry.poster_path ?: ""
                             val backgroundURL = entry.backdrop_path ?: ""
                             val date = entry.first_air_date ?: ""
@@ -114,7 +113,6 @@ class ShowListViewModel @Inject constructor(
                             val rating = entry.vote_average ?: ""
                             val adult = entry.adult ?: ""
 
-                            // TODO genres string & empty values
                             ShowListEntry(
                                 id,
                                 title,
@@ -152,7 +150,7 @@ class ShowListViewModel @Inject constructor(
         viewModelScope.launch {
             when (val result = repository.getShowGenres()) {
                 is Resource.Success -> {
-                    val genres = result.data!!.genres.mapIndexed { index, genre ->
+                    val genres = result.data!!.genres.mapIndexed { _, genre ->
                         val genreID = genre.id
                         val genreName = genre.name
 
@@ -172,17 +170,6 @@ class ShowListViewModel @Inject constructor(
                 is Resource.Loading -> {
                     isLoading.value = true
                 }
-            }
-        }
-    }
-
-    // TODO might be useful for a lighter UI
-    fun calcDominantColor(drawable: Drawable, onFinish: (Color) -> Unit) {
-        val bmp = (drawable as BitmapDrawable).bitmap.copy(Bitmap.Config.ARGB_8888, true)
-
-        Palette.from(bmp).generate { palette ->
-            palette?.dominantSwatch?.rgb?.let { colorValue ->
-                onFinish(Color(colorValue))
             }
         }
     }

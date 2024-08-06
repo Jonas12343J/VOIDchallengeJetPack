@@ -16,7 +16,7 @@ data class ShowDetails(
     val last_episode_to_air: Any,
     val name: String,
     val networks: List<Any>,
-    val next_episode_to_air: Any,
+    val next_episode_to_air: Episode?,
     val number_of_episodes: Int,
     val number_of_seasons: Int,
     val origin_country: List<String>,

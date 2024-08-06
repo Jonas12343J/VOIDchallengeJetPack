@@ -66,13 +66,40 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
     implementation(libs.androidx.constraintlayout.compose)
-    testImplementation(libs.junit)
+
+
+    //androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
-    androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
+
+    // Local unit tests
+    testImplementation ("androidx.test:core:1.6.1")
+    testImplementation ("junit:junit:4.13.2")
+    testImplementation ("androidx.arch.core:core-testing:2.2.0")
+    testImplementation ("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.5.1")
+    testImplementation ("com.google.truth:truth:1.1.3")
+    testImplementation ("com.squareup.okhttp3:mockwebserver:4.9.1")
+    testImplementation ("io.mockk:mockk:1.10.5")
+    testImplementation ("org.mockito:mockito-core:3.12.4")
+    testImplementation ("org.mockito:mockito-inline:3.12.4") // for mocking final classes
     debugImplementation(libs.androidx.ui.test.manifest)
+
+    // Instrumentation tests
+    androidTestImplementation ("com.google.dagger:hilt-android-testing:2.37")
+    kaptAndroidTest ("com.google.dagger:hilt-android-compiler:2.49")
+    androidTestImplementation ("junit:junit:4.13.2")
+    androidTestImplementation ("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.5.1")
+    androidTestImplementation ("androidx.arch.core:core-testing:2.2.0")
+    androidTestImplementation ("com.google.truth:truth:1.1.3")
+    androidTestImplementation ("androidx.test.ext:junit:1.2.1")
+    androidTestImplementation ("androidx.test:core-ktx:1.6.1")
+    androidTestImplementation ("com.squareup.okhttp3:mockwebserver:4.9.1")
+    androidTestImplementation ("io.mockk:mockk-android:1.10.5")
+    androidTestImplementation ("androidx.test:runner:1.6.1")
+
+
     implementation(libs.glide)
     implementation(libs.navigation.compose)
     implementation(libs.splashscreen)
@@ -90,19 +117,15 @@ dependencies {
     implementation(libs.lifecycle.runtime.ktx)
 
     implementation(libs.hilt.android)
-    kapt(libs.hilt.android.compiler) // TODO
-    //runtimeOnly(libs.hilt.android.compiler)
-    //implementation(libs.hilt.lifecycle.viewmodel) // TODO OK
-    kapt(libs.hilt.compiler) // TODO
-    //runtimeOnly(libs.dagger.hilt.compiler)
+    kapt(libs.hilt.android.compiler)
+    kapt(libs.hilt.compiler)
     implementation(libs.hilt.navigation.compose)
-    //implementation(libs.hilt.android.gradle.plugin)
 
     implementation(libs.coil)
     implementation(libs.coil.compose)
-    implementation(libs.accompanist.coil) // TODO OK
+    implementation(libs.accompanist.coil)
 
-    implementation(libs.palette) // TODO OK
+    implementation(libs.palette)
 
     implementation(libs.timber)
 

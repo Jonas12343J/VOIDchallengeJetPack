@@ -23,7 +23,6 @@ class ShowDetailsViewModel @Inject constructor(
     }
 
     suspend fun getSeasonDetails(showId: Int, seasonNumber: Int): Resource<SeasonDetails> {
-        println("repository Received ID: $showId, seasonN: $seasonNumber")
         return repository.getSeasonDetails(showId, seasonNumber)
     }
 }

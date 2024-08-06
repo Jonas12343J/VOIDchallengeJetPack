@@ -24,13 +24,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.platform.LocalContext
@@ -49,8 +46,8 @@ import com.example.voidchallengejetpack.SearchBar
 import com.example.voidchallengejetpack.TVShowDetailsScreen
 import com.example.voidchallengejetpack.data.models.ShowListEntry
 import com.example.voidchallengejetpack.displayedText
-import com.example.voidchallengejetpack.util.Constants.IMG_PATH_200
 import com.example.voidchallengejetpack.util.Constants.IMG_PATH_300
+import com.example.voidchallengejetpack.util.Constants.IMG_PATH_400
 
 @Composable
 fun TVShowListScreen(
@@ -58,11 +55,11 @@ fun TVShowListScreen(
     viewModel: ShowListViewModel = hiltViewModel()
 ) {
 
-    var searchText by remember { mutableStateOf("") }
-
     Surface(color = colorResource(id = R.color.black)) {
         Column(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(4.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Bottom
         ) {
@@ -72,7 +69,6 @@ fun TVShowListScreen(
                 contentDescription = null,
                 modifier = Modifier
                     .padding(top = 8.dp)
-
             )
 
             Row (
@@ -81,62 +77,45 @@ fun TVShowListScreen(
             ){
 
                 SearchBar(
-
                     onSearch = { newText ->
+                        viewModel.searchText.value = newText
+
                         // Handle search functionality here
-                        searchText = newText
-                        if (searchText.isNotEmpty()) { // Perform search and update movieList
-
-                            /*performSearchAsync(scope = coroutineScope,
-                                searchText,
-                                onSuccess = { response ->
-                                    // Handle successful response and update UI
-                                    tvShowList = setShowList(response)
-                                    displayedText = if (tvShowList.isNotEmpty()) {
-                                        "Search results for: $searchText"
-                                    } else {
-                                        "No results found for: $searchText"
-                                    }
-                                },
-                                onFailure = { exception ->
-                                    // Handle network request failure
-                                    println("Error: ${exception.message}")
-                                    displayedText = ""
-                                }
-                            )*/
-                            displayedText = if (viewModel.searchShowList(searchText))
-                                "Search results for: $searchText"
-                            else
-                                "No results found for: $searchText"
-
+                        if (viewModel.searchText.value.isNotEmpty()) { // Perform search and update movieList
+                            viewModel.searchShowList(viewModel.searchText.value)
                         } else { // No search text, get popular shows
-                            displayedText = "Popular right now:"
                             viewModel.loadShows()
                         }
-                    }
+                    },
+                    viewModel = viewModel
+
                 )
             }
 
-            Text(
-                text = displayedText,
-                color = Color.White,
-                fontSize = 20.sp,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp)
+            Spacer(Modifier.height(16.dp))
 
+            Column (
+                Modifier
+                .fillMaxWidth(.95f),
+                horizontalAlignment = Alignment.Start
+            ) {
 
-            )
-            TVShowList(navController = navController, viewModel = viewModel)
+                Text(text = displayedText, color = Color.White, fontSize = 20.sp)
+            }
+
+            Spacer(Modifier.height(16.dp))
+
+            TVShowList(navController = navController, viewModel = viewModel, searchText = viewModel.searchText.value)
+
         }
     }
 }
 
-// *****************************************************
 @Composable
 fun TVShowList(
     navController: NavHostController,
-    viewModel: ShowListViewModel = hiltViewModel()
+    viewModel: ShowListViewModel = hiltViewModel(),
+    searchText: String = ""
 ) {
 
     val showsList by remember { viewModel.showsList }
@@ -149,11 +128,24 @@ fun TVShowList(
         modifier = Modifier.fillMaxSize()
 
     ) {
+        if (!isLoading && !isSearching) {
+            displayedText = if (searchText == "" && showsList.isNotEmpty()) {
+                "Popular right now:"
+
+            } else if (searchText != "" && showsList.isEmpty()) {
+                "No results found for '${searchText}'..."
+
+            } else if (searchText != "") {
+                "Results for '${searchText}':"
+            } else {
+                ""
+            }
+        }
+
         LazyColumn(
             modifier = Modifier
                 .fillMaxWidth()
-                .fillMaxHeight(.90f)
-                .background(Color.Black),
+                .fillMaxHeight(.95f),
         ) {
             val itemCount = if (showsList.size % 2 == 0) {
                 showsList.size / 2
@@ -175,6 +167,7 @@ fun TVShowList(
             }
 
         }
+
         Column (
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
@@ -194,138 +187,21 @@ fun TVShowList(
                 }
             }
         }
+
+        Text(
+            text = "Developed by Jóni Pereira as a VOID Software's challenge",
+            color = Color.Gray,
+            fontSize = 10.sp,
+            fontStyle = FontStyle.Italic,
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+
+        )
+
     }
+
+
 }
-
-// NEW TVShowListItem
-/*
-@Composable
-fun TVShowEntry(
-    entry: ShowListEntry,
-    navController: NavHostController,
-    modifier: Modifier = Modifier,
-    viewModel: ShowListViewModel = hiltViewModel()
-) {
-    val defaultDominantColor = colorResource(id = R.color.themeColorPrim)
-
-    var dominantColor by remember {
-        mutableStateOf(defaultDominantColor)
-    }
-
-    Row(
-
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(
-                Brush.verticalGradient(
-                    listOf(
-                        dominantColor,
-                        defaultDominantColor
-                    )
-                )
-            )
-            .padding(4.dp)
-            .height(160.dp)
-            .clickable {
-                navController.navigate(
-                    "tv_show_details_screen/${entry.id}"
-                    /*
-                    TVShowDetailsScreen(
-                        id = entry.id,
-                    )*/
-                )
-            }
-
-    ) {
-        if (entry.imagePosterURL != "null") {
-
-            Box {
-
-                AsyncImage(
-                    model = entry.imagePosterURL,
-                    contentDescription = null,
-                    modifier = Modifier
-                        .fillMaxHeight()
-                        .fillMaxWidth(.3f)
-                        .width(90.dp),
-                    placeholder = painterResource(id = R.drawable.img_placeholder),
-                )
-                CircularProgressIndicator(
-                    color = colorResource(id = R.color.themeColorSec),
-                    modifier = Modifier
-                        .scale(.5f)
-                )
-            }
-
-        }
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(8.dp)
-            ) {
-
-
-                Text(
-                    text = entry.title,
-                    fontSize = 16.sp,
-                    color = colorResource(id = R.color.white)
-                )
-
-                Spacer(modifier = Modifier.height(4.dp))
-
-                var genresString by remember {
-                    mutableStateOf("")
-                }
-
-                genresString = ""
-
-                // TODO use genres in viewmodel
-                for (genre in tvShowGenresList) {
-                    if (entry.genres.contains(genre.key.toString())) {
-                        if (genresString != "")
-                            genresString += ", "
-                        genresString += genre.value
-                    }
-                }
-
-                Text(
-                    text = entry.date + "    " + genresString,
-                    fontSize = 10.sp,
-                    color = colorResource(id = R.color.grayish_text)
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-
-                RatingBar(
-                    maxStars = 5,
-                    rating = entry.rating / 2, // 0 - 10
-                    modifier = Modifier.size(8.dp),
-                    string = String.format(Locale.US, "(%.2f ★)", entry.rating)
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                if (entry.description != "") {
-                    Text(
-                        text = "Description",
-                        fontSize = 10.sp,
-                        color = colorResource(id = R.color.white)
-                    )
-
-                    Spacer(modifier = Modifier.height(2.dp))
-
-                    Text(
-                        text = entry.description,
-                        fontSize = 10.sp,
-                        color = colorResource(id = R.color.grayish_text),
-                        overflow = TextOverflow.Ellipsis
-                    )
-                }
-            }
-    }
-}
-*/
 
 @Composable
 @Stable
@@ -333,31 +209,15 @@ fun TVShowEntry2PerRow(
     entry: ShowListEntry,
     navController: NavHostController,
     modifier: Modifier = Modifier,
-    viewModel: ShowListViewModel = hiltViewModel()
 ) {
-    val defaultDominantColor = colorResource(id = R.color.themeColorPrim)
-
-    var dominantColor by remember {
-        mutableStateOf(defaultDominantColor)
-    }
 
     Box(
         modifier = modifier
-            //.width(90.dp)
-            //.height(160.dp)
             .aspectRatio(2f / 3f)
-            .background(
-                brush = Brush.verticalGradient(
-                    listOf(
-                        dominantColor,
-                        defaultDominantColor
-                    )
-                )
-            )
+            .background(colorResource(id = R.color.themeColorPrim))
             .padding(4.dp)
             .clickable {
                 navController.navigate(
-                    /*"tv_show_details_screen/${entry.id}"*/
                     TVShowDetailsScreen(
                         id = entry.id,
                     )
@@ -367,7 +227,7 @@ fun TVShowEntry2PerRow(
 
             if(entry.imagePosterURL != "") {
                 SubcomposeAsyncImage(
-                    model = IMG_PATH_200 + entry.imagePosterURL,
+                    model = IMG_PATH_400 + entry.imagePosterURL,
                     filterQuality = FilterQuality.Medium,
                     contentDescription = null,
                     modifier = Modifier
@@ -417,24 +277,6 @@ fun TVShowEntry2PerRow(
                     .padding(4.dp)
                     .align(Alignment.BottomStart)
             )
-        }
-
-        if (entry.rating > 0) {
-            Column (
-                Modifier
-                    .fillMaxWidth(),
-                horizontalAlignment = Alignment.CenterHorizontally,
-            ){
-
-                /*RatingBar(
-                    maxStars = 5,
-                    rating = entry.rating / 2, // 0 - 10
-                    modifier = Modifier
-                        .padding(top = 4.dp)
-                        .size(16.dp)
-                        .background(Color.Black)
-                )*/
-            }
         }
     }
 }
@@ -486,20 +328,4 @@ fun RetrySection(
             Text(text = "Retry")
         }
     }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun PreviewShowListEntry() {
-    TVShowEntry2PerRow(entry = ShowListEntry(
-        id = 1,
-        title = "Title",
-        imagePosterURL = "https://image.tmdb.org/t/p/w500/6kbAMLteGO8yyewYau6bJ683sw7.jpg",
-        date = "2021-09-01",
-        genres = listOf("1", "2").toString(),
-        description = "Description",
-        rating = 8.0,
-        adult = false,
-        imageBackgroundURL = "https://image.tmdb.org/t/p/w500/6kbAMLteGO8yyewYau6bJ683sw7.jpg"
-    ), navController = NavHostController(LocalContext.current))
 }

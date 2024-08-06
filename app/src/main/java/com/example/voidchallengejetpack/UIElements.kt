@@ -16,11 +16,9 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
@@ -29,19 +27,16 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
@@ -49,7 +44,6 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -74,33 +68,19 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.SubcomposeAsyncImage
-//import coil.compose.rememberImagePainter
-import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
-import com.bumptech.glide.integration.compose.GlideImage
 import com.example.voidchallengejetpack.data.remote.responses.CastMember
 import com.example.voidchallengejetpack.data.remote.responses.SeasonDetails
 import com.example.voidchallengejetpack.util.Constants.IMG_PATH_200
 import kotlinx.coroutines.delay
-import java.util.UUID
 import com.example.voidchallengejetpack.data.remote.responses.Episode
-
-data class DropDownItem(
-    val seasonNumber: Int,
-    val name: String
-)
-
-@Immutable
-data class Person(
-    val name: String,
-    val profilePath: String,
-    val roles: String,
-    val id: String = UUID.randomUUID().toString()
-)
+import com.example.voidchallengejetpack.showslist.ShowListViewModel
+import java.text.SimpleDateFormat
+import java.util.Locale
 
 @Composable
 fun SkeletonWrapperView(
@@ -178,60 +158,6 @@ fun SkeletonWrapperView(
     }
 }
 
-
-
-@Composable
-fun SearchBar(
-    modifier: Modifier = Modifier,
-    onSearch: (String) -> Unit = {},
-) {
-    // State to hold the text value of the search bar
-    val (text, setText) = remember { mutableStateOf("") }
-
-    Box(
-        modifier = modifier
-            .fillMaxWidth()
-            .background(Color.Transparent)
-            .padding(16.dp),
-        contentAlignment = Alignment.CenterEnd
-
-    ) {
-
-        OutlinedTextField(
-            colors = TextFieldDefaults.colors(Color.White, focusedIndicatorColor = Color.Gray, focusedContainerColor = Color.Transparent, unfocusedContainerColor = Color.Transparent),
-            value = text,
-            onValueChange = {
-                setText(it)
-                //onSearch(it)
-            },
-            placeholder = { Text(text = "What are you looking for?") },
-            keyboardOptions = KeyboardOptions.Default.copy(
-                imeAction = ImeAction.Done
-            ),
-            keyboardActions = KeyboardActions(
-                onDone = {
-                    onSearch(text)
-                }
-            ),
-
-            modifier = Modifier.fillMaxWidth(),
-        )
-
-        if (text.isNotEmpty()) {
-            // Clear button to clear the search text
-            IconButton(
-                onClick = { setText("") },
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Clear,
-                    contentDescription = "Clear search",
-                    tint = colorResource(id = R.color.themeColorSec)
-                )
-            }
-        }
-    }
-}
-
 @Composable
 @Stable
 fun RatingBar(
@@ -263,32 +189,6 @@ fun RatingBar(
             )
         }
     }
-}
-
-@OptIn(ExperimentalGlideComposeApi::class)
-@Composable
-fun RemoteImage(url: String, modifier: Modifier = Modifier, placeholderResId: Int? = null, profile : Boolean? = false) {
-    GlideImage(
-        model = url,
-        contentDescription = null,
-        modifier = modifier
-    ) {
-        it.error(placeholderResId)
-            .load(url)
-
-    }
-    /*val painter = rememberImagePainter(
-        data = url,
-        builder = {
-            placeholderResId?.let { placeholder(it) }
-            size(500)
-
-        })
-    Image(
-        painter = painter,
-        contentDescription = null,
-        modifier = modifier
-    )*/
 }
 
 @Composable
@@ -325,7 +225,62 @@ fun LoadingScreen() {
 }
 
 @Composable
-fun doubleColorText(prefix: String, suffix: String) : AnnotatedString {
+fun SearchBar(
+    modifier: Modifier = Modifier,
+    onSearch: (String) -> Unit = {},
+    viewModel: ShowListViewModel = hiltViewModel()
+) {
+    // State to hold the text value of the search bar
+    val (text, setText) = remember { mutableStateOf(viewModel.searchText.value) }
+
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .background(Color.Transparent)
+            .padding(16.dp),
+        contentAlignment = Alignment.CenterEnd
+
+    ) {
+
+        OutlinedTextField(
+            colors = TextFieldDefaults.colors(focusedTextColor = Color.White, unfocusedTextColor = Color.White, focusedIndicatorColor = Color.Gray, focusedContainerColor = Color.Transparent, unfocusedContainerColor = Color.Transparent),
+            value = text,
+            onValueChange = {
+                setText(it)
+            },
+            placeholder = { Text(text = "What are you looking for?") },
+            keyboardOptions = KeyboardOptions.Default.copy(
+                imeAction = ImeAction.Done
+            ),
+            keyboardActions = KeyboardActions(
+                onDone = {
+                    onSearch(text)
+                }
+            ),
+
+            modifier = Modifier.fillMaxWidth(),
+        )
+
+        if (text.isNotEmpty()) {
+            // Clear button to clear the search text
+            IconButton(
+                onClick = { setText("") },
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Clear,
+                    contentDescription = "Clear search",
+                    tint = colorResource(id = R.color.themeColorSec)
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun doubleColorText(
+    prefix: String,
+    suffix: String
+) : AnnotatedString {
     val text = buildAnnotatedString {
         withStyle(style = SpanStyle(colorResource(id = R.color.grayish_text))) {
             append(prefix)
@@ -335,63 +290,6 @@ fun doubleColorText(prefix: String, suffix: String) : AnnotatedString {
         }
     }
     return text
-}
-
-@Composable
-fun dropDownMenu(
-    itemList: List<SeasonDetails>,
-) : Int {
-    var isContextMenuVisible by rememberSaveable {
-        mutableStateOf(false)
-    }
-
-    var selectedSeason by remember {
-        mutableStateOf(itemList[0])
-    }
-
-
-    Row (
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier
-            .clip(RoundedCornerShape(8.dp))
-            .background(color = colorResource(id = R.color.grayish_text))
-            .pointerInput(true) {
-                detectTapGestures(
-                    onTap = {
-                        isContextMenuVisible = !isContextMenuVisible
-                    }
-                )
-            }
-            .padding(10.dp)
-    ) {
-        Text(
-            text = selectedSeason.name,
-        )
-
-        ExposedDropdownMenuDefaults.TrailingIcon(
-            expanded = isContextMenuVisible
-        )
-    }
-
-    DropdownMenu(
-        expanded = isContextMenuVisible,
-        onDismissRequest = { isContextMenuVisible = false },
-        modifier = Modifier
-            .heightIn(max = 240.dp),
-    ) {
-
-        itemList.forEach {item ->
-            DropdownMenuItem(
-                text = { Text(text = item.name) },
-                onClick = {
-                    selectedSeason = item
-                    isContextMenuVisible = false
-                }
-            )
-            HorizontalDivider()
-        }
-    }
-    return selectedSeason.season_number
 }
 
 @Composable
@@ -459,10 +357,10 @@ fun myExposedDropdownMenuBox(
     return selectedSeason
 }
 
-
 @Composable
-fun CastMemberLayout(castMember: CastMember) {
-
+fun CastMemberLayout(
+    castMember: CastMember
+) {
     Column (
         modifier = Modifier
             .width(70.dp)
@@ -470,13 +368,12 @@ fun CastMemberLayout(castMember: CastMember) {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ){
-        if (castMember.profilePath != "") {
+        if (castMember.profile_path != "") {
             SubcomposeAsyncImage(
-                model = IMG_PATH_200 + castMember.profilePath,
+                model = IMG_PATH_200 + castMember.profile_path,
                 filterQuality = FilterQuality.Low,
                 contentDescription = null,
 
-                //placeholder = painterResource(id = R.drawable.img_placeholder),
                 loading = {
                     CircularProgressIndicator(
                         color = colorResource(id = R.color.themeColorSec),
@@ -522,7 +419,7 @@ fun CastMemberLayout(castMember: CastMember) {
             )
         }
 
-        if (castMember.roles.isNotEmpty()) {
+        if (castMember.roles.isNotEmpty() && castMember.roles[0].character != "") {
             Text(text = "as" , color = colorResource(id = R.color.grayish_text), fontSize = 5.sp, fontStyle = FontStyle.Italic)
             Text(
                 text = castMember.roles[0].character,
@@ -539,24 +436,30 @@ fun CastMemberLayout(castMember: CastMember) {
 @Composable
 fun EpisodeLayout(
     episode: Episode,
-    modifier: Modifier = Modifier) {
-
-    Row (
+    modifier: Modifier = Modifier
+) {
+    Row(
         modifier = modifier
-            .clip(RoundedCornerShape(8.dp))
-            .background(colorResource(id = R.color.grayish_text))
             .width(100.dp)
             .height(40.dp)
-            .padding(2.dp)
-            .clip(RoundedCornerShape(8.dp))
-            .background(colorResource(id = R.color.themeColorPrim))
-            .padding(2.dp),
-        horizontalArrangement = Arrangement.Center,
+            .padding(.5f.dp)
+            .clip(RoundedCornerShape(4.dp))
+            .background(colorResource(id = R.color.themeColorPrim)),
+
+        horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
-    ){
-        Column (
+    ) {
+        Column(
+            modifier = modifier
+                .fillMaxWidth(.1f)
+                .fillMaxHeight()
+                .background(colorResource(id = R.color.grayish_text))
+        ) {}
+
+        Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-        ){
+            verticalArrangement = Arrangement.Center
+        ) {
             if (episode.runtime != 0) {
                 Text(
                     text = episode.runtime.toString() + " minutes",
@@ -573,7 +476,7 @@ fun EpisodeLayout(
                     fontSize = 8.sp,
                     fontWeight = FontWeight(750),
                     overflow = TextOverflow.Ellipsis,
-
+                    textAlign = TextAlign.Center,
                     )
             } else {
                 Text(
@@ -583,26 +486,39 @@ fun EpisodeLayout(
                 )
             }
         }
+        Column(
+            modifier = modifier
+                .fillMaxWidth(.1f)
+                .fillMaxHeight()
+        ) {}
+
     }
 }
 
 @Composable
-fun LastEpisodeLayout(name: String, runtime: Int, stillPath: String) {
-    Box (
-
-        modifier = Modifier
-            .width(120.dp)
+fun NextEpisodeLayout(
+    episode: Episode,
+    modifier: Modifier = Modifier
+) {
+    Row (
+        modifier = modifier
+            .fillMaxWidth()
             .height(75.dp)
             .clip(RoundedCornerShape(8.dp))
-            .background(colorResource(id = R.color.black))
-            .padding(1.dp)
-            .clip(RoundedCornerShape(8.dp))
             .background(colorResource(id = R.color.themeColorPrim)),
+        verticalAlignment = Alignment.Top,
     ){
-        if (stillPath != "null") {
-            if (stillPath != "") {
+        Box (
+            modifier = Modifier
+                .width(120.dp)
+                .fillMaxHeight()
+                .clip(RoundedCornerShape(8.dp))
+                .background(colorResource(id = R.color.themeColorPrim)),
+
+        ) {
+            if (episode.still_path != "") {
                 SubcomposeAsyncImage(
-                    model = IMG_PATH_200 + stillPath,
+                    model = IMG_PATH_200 + episode.still_path,
                     filterQuality = FilterQuality.Low,
                     contentDescription = null,
                     modifier = Modifier
@@ -610,7 +526,6 @@ fun LastEpisodeLayout(name: String, runtime: Int, stillPath: String) {
                         .fillMaxHeight()
                         .alpha(.5f),
 
-                    //placeholder = painterResource(id = R.drawable.img_placeholder),
                     loading = {
                         CircularProgressIndicator(
                             color = colorResource(id = R.color.themeColorSec),
@@ -631,77 +546,85 @@ fun LastEpisodeLayout(name: String, runtime: Int, stillPath: String) {
                     },
 
                     )
+            } else {
+                Image(
+                    painter = painterResource(id = R.drawable.logo_transp_large),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .alpha(.4f)
+                )
             }
-            RemoteImage( // Poster
-
-                url = IMG_PATH_200 + stillPath,
-
-                placeholderResId = R.drawable.logo_transp_large,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .alpha(.5f)
-            )
-        } else if (stillPath == "null" || stillPath == "") {
-            Image(
-                painter = painterResource(id = R.drawable.logo_transp_large),
-                contentDescription = null,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .alpha(.4f)
-            )
         }
 
-        Row(
+        Spacer(modifier = Modifier.width(4.dp))
+
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .align(Alignment.BottomCenter)
                 .padding(2.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
+            horizontalAlignment = Alignment.Start,
+            verticalArrangement = Arrangement.Center
         ) {
-            if (name != "") {
+            if (episode.season_number != 0) {
                 Text(
-                    text = name,
-                    color = colorResource(id = R.color.themeColorSec),
-                    fontSize = 10.sp,
+                    text = "Season ${episode.season_number}",
+                    color = Color.White,
+                    fontSize = 14.sp,
                     fontWeight = FontWeight(1000),
-                    modifier = Modifier.widthIn(max = 80.dp)
+                    textAlign = TextAlign.Center,
+                )
+            }
+            if (episode.name != "") {
+                Spacer(modifier = Modifier.height(4.dp))
+
+                Text(
+                    text = episode.name,
+                    color = colorResource(id = R.color.themeColorSec),
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight(500),
                 )
             }
 
-            if (runtime.toString() != "0") {
+            if (episode.air_date != "") {
+                Spacer(Modifier.height(8.dp))
+
                 Text(
-                    text = "$runtime min",
+                    text = "Coming out in " + SimpleDateFormat("MMM dd, yyyy", Locale.ENGLISH).format(
+                        SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH).parse(episode.air_date)!!),
                     color = colorResource(id = R.color.white),
-                    fontSize = 6.sp,
+                    fontSize = 8.sp,
                     textAlign = TextAlign.Center,
                     fontStyle = FontStyle.Italic,
                 )
             }
+
+            if (episode.runtime.toString() != "0") {
+                Spacer(Modifier.height(4.dp))
+
+                Row (
+                    verticalAlignment = Alignment.CenterVertically
+                ){
+
+                    Image(
+                        painter = painterResource(id = R.drawable.baseline_access_time_24),
+                        contentDescription = null,
+                        Modifier
+                            .size(12.dp)
+                            .padding(end = 4.dp)
+                    )
+
+                    Text(
+                        text = "${episode.runtime} min",
+                        color = colorResource(id = R.color.white),
+                        fontSize = 6.sp,
+                        textAlign = TextAlign.Center,
+                        fontStyle = FontStyle.Italic,
+                    )
+                }
+            }
+
         }
 
     }
-}
-
-
-@Preview(showBackground = true)
-@Composable
-fun Preview() {
-    val castMember = Person(
-        name = "John Doe",
-        profilePath = "https://sample-url.com/poster.jpg",
-        roles = "Some Character",
-    )
-
-    //val episode = Episode(
-    //name = "Episode 1",
-    //runtime = 37,
-    //)
-
-    //CastMemberLayout(castMember = castMember)
-
-    //EpisodeLayout(episode = episode)
-
-    //LastEpisodeLayout(name = "Episode 1", runtime = 60, stillPath = "https://sample-url.com/poster.jpg")
-
 }
